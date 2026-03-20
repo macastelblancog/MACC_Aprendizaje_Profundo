@@ -1,0 +1,39 @@
+{
+"conv_layers": [
+    {
+        "filters": 16,
+        "kernel_size": [3, 3],
+        "activation": "relu",
+        "padding": "same",
+        "strides": [1, 1],
+        "pool_size": [2, 2],
+        "dropout": 0.2
+    },
+    {
+        "filters": 32,
+        "kernel_size": [3, 3],
+        "activation": "relu",
+        "padding": "same",
+        "strides": [1, 1],
+        "pool_size": [2, 2],
+        "dropout": 0.2
+    }
+    ]
+,"dense_layers": [
+    {
+        "units": 32,
+        "activation": "relu",
+        "dropout": 0.2
+    },
+    {
+        "units": 16,
+        "activation": "relu",
+        "dropout": 0.2
+    },
+    {
+        "units": 8,
+        "activation": "relu",
+        "dropout": 0.2
+    }
+    ]
+}
