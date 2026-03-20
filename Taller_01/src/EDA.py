@@ -70,3 +70,46 @@ def labels_report(Y):
     fig.update_traces(texttemplate="%{text:.2f}%", textposition="outside")
     fig.update_layout(yaxis_title="Percentage (%)")
     return fig
+
+def imbalance_report(Y, key="train"):
+    y = np.ravel(Y[key])
+
+    # Conteo por clase
+    counts = pd.Series(y).value_counts().sort_index()
+
+    # Asegurar que existan todas las clases (0 a n-1)
+    all_classes = sorted(np.unique(y))
+    counts = counts.reindex(all_classes, fill_value=0)
+
+    # Estadísticas básicas
+    total = counts.sum()
+    percentages = counts / total * 100
+
+    max_count = counts.max()
+    min_count = counts.min()
+
+    imbalance_ratio = max_count / max(min_count, 1)  # evitar división por cero
+
+    # Ratio relativo por clase (vs clase mayoritaria)
+    relative_ratio = counts / max_count
+
+    # Construir reporte
+    df = pd.DataFrame({
+        "count": counts,
+        "percentage": percentages.round(2),
+        "ratio_vs_max": relative_ratio.round(3)
+    })
+
+    # Identificar clases críticas
+    df["is_minority"] = df["ratio_vs_max"] < 0.3
+    df["is_rare"] = df["ratio_vs_max"] < 0.1
+
+    summary = {
+        "total_samples": int(total),
+        "n_classes": len(counts),
+        "max_count": int(max_count),
+        "min_count": int(min_count),
+        "imbalance_ratio_max_min": round(imbalance_ratio, 2)
+    }
+
+    return df, summary
