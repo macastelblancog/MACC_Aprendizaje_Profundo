@@ -155,10 +155,15 @@ class_weights = compute_class_weights(Y_aug, key="train")
 
 Esta combinación penaliza más los errores en clases minoritarias sin modificar el conjunto de validación ni de test.
 
+![Y_aug](./figures/EDA_tags_Y_aug.png)
 
 **c) Métricas normalizadas:**
 
-Se crea una función personalizada `balanced_accuracy`, donde las métricas van normalizadas por la cantidad de registros reales de las etiquetas a clasificar. Esto hace que, al tener un conjunto desbalanceado, el `accuracy` no este influenciado por las clase predominentes, y la mala clasificación de las clases minoritarias penalicen fuertemente a la métrica, forzando mejorar los hiperparámetros.
+Se crea una función personalizada `balanced_accuracy`, donde las métricas van normalizadas por la cantidad de registros reales de las etiquetas a clasificar. 
+
+Esto hace que, al tener un conjunto desbalanceado, el `accuracy` no este influenciado por las clase predominentes, y la mala clasificación de las clases minoritarias penalicen fuertemente a la métrica, forzando mejorar los hiperparámetros.
+
+Esto es relevante, ya que aun con las operaciónes de `augmentation`, el conjunto se muestra fuertamente desbalanceado.
 
 ### 5. Arquitectura CNN
 
@@ -326,4 +331,27 @@ En este contexto se prioriza **maximizar sensibilidad** (recall) en clases malig
 
 Las matrices de confusión normalizadas en `figures/` permiten identificar visualmente qué clases presentan mayor confusión. Se espera que `mel` y `nv` sean el par con mayor confusión mutua, dado que ambas comparten patrones pigmentados que a 28×28 píxeles pierden el detalle fino de bordes, estructura y distribución del color que distinguiría una del otro.
 
+Como se puede ver en la matriz de confusión del entrenamiento, las clase 4 (mNevus melanocíticos ) y 5 (melanoma), mostrando que un 21% de los casos de melanoma no podian diferenciarse de una condición benigna. 
+
+![train](./figures/conf_matrix_train.png)
+
+
+Esta distribución se replica en la evaluación del modelo, donde también notamos la buena clasifacación de las clase 6 (Lesiones vasculares) y como las clase minoritarias 0, 1 y 2 no se logran diferenciar de la clase 3 adecuadamente, dando como resultado etiquetas como 3 a las claes 0,1 y 2 entre un 15% y 25% de los casos.
+
+![test](./figures/conf_matrix_test.png)
+
+El comporamiento del `accuracy` y la función de pérdida (`loss`) no muestra señales de sobreajuste. 
+
+En `accuracy` tenemos convergencia con training llegando a ~0.32 y validation a ~0.30. La brecha entre ellas es pequeña y estable.
+
+En `loss` Ambas curvas descienden de ~1.9 a ~1.3, convergiendo hacia el final. Training y validation terminan prácticamente superpuestas  El modelo generaliza bien.
+
+![loss](./figures/train_loss.png)
+
+La volatilidad puede deberse a que la distribución de las clases es ligeramente diferente.
+
+
+Finalmente, en la valicación, notamos que las métricas caen un poco más, y el promedio general disminuye por las dificultades en diferencias las clases 0,1 y 2 de las clase 3. Los resultados se pueden interpretar como: Las herramienta logra detectar una parte importante de los casos malignos, pero aún hay varios que son clasificados como benignos que requieren una revisión por parte del experto.
+
+![validation](./figures/conf_matrix_validation.png)
 ---
