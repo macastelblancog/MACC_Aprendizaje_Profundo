@@ -1,9 +1,13 @@
 # Esto es para construir los modelos
-from tensorflow.keras.layers import Dense, Dropout, Input, Flatten, Conv2D ,MaxPooling2D, GlobalAveragePooling2D
+from tensorflow.keras.layers import (
+    Dense, Dropout, Input, Conv2D,
+    MaxPooling2D, GlobalAveragePooling2D,
+    BatchNormalization
+)
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.utils import plot_model
 
-from keras.callbacks import EarlyStopping
+from keras.callbacks import EarlyStopping, ModelCheckpoint
 
 import tensorflow as tf
 from tensorflow.keras import backend as K
@@ -179,6 +183,10 @@ class skin_classifier:
                 )
             )
 
+            layers.append(
+                BatchNormalization(name=f"bn{index}")  # ← agregar aquí
+            )
+
             pool_size = conv_cfg.get("pool_size", None)
             if pool_size is not None:
                 layers.append(
@@ -247,10 +255,17 @@ class skin_classifier:
                 monitor              = "val_balanced_accuracy"
                 ,patience             = 15
                 ,restore_best_weights = True
-                ,mode                 = "max"    # balanced_accuracy ↑ is better
-                ,min_delta            = 0.001     # ignore improvements smaller than 0.1%
+                ,mode                 = "max"
+                ,min_delta            = 0.001  # ignore improvements smaller than 0.1%
                 ,start_from_epoch     = 40  
     
+            ),
+            ModelCheckpoint(                            # ← agregar aquí
+                filepath        = "./models/dermClass.keras",
+                monitor         = "val_balanced_accuracy",
+                save_best_only  = True,
+                mode            = "max",
+                verbose         = 1
             )
         ]
 
@@ -309,6 +324,7 @@ class skin_classifier:
             ax.set_xlabel("Predicted")
             ax.set_ylabel("True")
             plt.tight_layout()
+            plt.savefig(f"./figures/conf_matrix_{label}.png", dpi=150, bbox_inches = "tight")
             plt.show()
 
             # Classification report — weighted avg is now meaningful
