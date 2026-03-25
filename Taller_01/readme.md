@@ -314,9 +314,20 @@ Una CNN actúa como filtro preliminar de triaje: prioriza casos sospechosos para
 
 Los píxeles sin escalar (0–255) generan gradientes de magnitudes muy distintas entre capas. Al normalizar a [0, 1], las activaciones y sus derivadas se mantienen en rangos estables, el optimizador Adam converge más rápido y se reduce el riesgo de gradientes explosivos o evanescentes.
 
+### Estrategia frente al predominio de nv
+
+Se evidencia que en este tipo de problema, con clases tan poco representadas como las 0, 1 y 2, no es suficiente con un oversampling, y usar el balanceo en las métricas con los pesos de las clases o la matriz normalizada llevan a un mejor aprendizaje del modelo, sin caer en el sesgos de evaluarlo por su desempeño en la clase predominante únicamente.
+
+
 ### Adam vs. Whale Optimization Algorithm (WOA)
 
 Adam aprovecha el gradiente de la función de pérdida para actualizar pesos de forma eficiente y adaptativa. WOA es un algoritmo metaheurístico de optimización global que no requiere gradientes, pero escala mal con el número de parámetros (millones en una CNN). Para este problema, Adam es significativamente más eficiente y estable.
+
+ 
+### ¿Por qué Softmax? Y relación con categorical crossentropy
+Como explicamos en la sección de diseño, porque las 7 clases son mutuamente excluyentes y necesitamos una distribución de probabilidad sobre ellas.
+ 
+Softmax produce probabilidades normalizadas y categorical crossentropy mide qué tan lejos está esa distribución respecto de la verdadera.
 
 ### Sensibilidad vs. Especificidad en detección de cáncer
 
