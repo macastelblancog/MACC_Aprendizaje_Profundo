@@ -93,7 +93,7 @@ from src import data_loader as dl
 X, Y = dl.load_data(fetch=False)   # fetch=True descarga desde Zenodo
 ```
 
-`X` y `Y` son diccionarios con claves `"train"`, `"val"` y `"test"`.
+`X` y `Y` son diccionarios con claves `"train"`, `"val"` y `"test"`. Los datos se tomaron del repositorio [DermaMNIST](https://zenodo.org/record/4269852/files/dermamnist.npz?download=1), los cuales se encontraban separados en los tres conjuntos de entrenamientos.
 
 ### 2. Preprocesamiento — escalado de píxeles
 
@@ -102,7 +102,7 @@ from src.utils.scaler import apply_scaler
 X = apply_scaler(X)   # divide entre 255 → rango [0, 1]
 ```
 
-Escalar a [0, 1] mejora el condicionamiento numérico del optimizador: los gradientes y activaciones se mantienen en rangos estables, favoreciendo la convergencia de Adam.
+Escalar a [0, 1] mejora el condicionamiento numérico del optimizador: los gradientes y activaciones se mantienen en rangos estables, favoreciendo la convergencia de Adam, dado que los valores de pixeles entre 0 y 255 implican menor variación porcentual a la hora de dar un paso con el optimizador.
 
 ### 3. Análisis exploratorio (EDA)
 
@@ -114,6 +114,24 @@ EDA.imbalance_report(Y)       # ratio de desbalance, clases minoritarias y raras
 ```
 
 El análisis confirma el predominio de `nv` con ~67% del conjunto de entrenamiento, lo que exige una estrategia explícita de compensación.
+![Y_raw](./figures/EDA_tags_Y_raw.png)
+
+Se evidencia el desbalance con los resultados de `imbalance_report`
+
+| Idx | Código  | count | percentage | ratio_vs_max | is_minority | is_rare |
+|:---:|---------|------:|-----------:|-------------:|:-----------:|:-------:|
+| 0   | `akiec` |   228 |       3.25 |        0.049 | ✓           | ✓       |
+| 1   | `bcc`   |   359 |       5.12 |        0.076 | ✓           | ✓       |
+| 2   | `bkl`   |   769 |      10.97 |        0.164 | ✓           |         |
+| 3   | `df`    |    80 |       1.14 |        0.017 | ✓           | ✓       |
+| 4   | `nv`    |   779 |      11.12 |        0.166 | ✓           |         |
+| 5   | `mel`   |  4693 |      66.98 |        1.000 |             |         |
+| 6   | `vasc`  |    99 |       1.41 |        0.021 | ✓           | ✓       |
+
+En cuanto a las imágenes, se nota una distribución similar de la magnitud de los pixeles en los 3 conjuntos, con distribución sesgada a la derecha. Se podría complementar el análisis revisando la intensidad de los pixeles en los canales RGB por separado.
+
+![Pixels_Xraw](./figures/EDA_pixeles_X_raw.png)
+
 
 ### 4. Manejo del desbalance
 
@@ -136,6 +154,11 @@ class_weights = compute_class_weights(Y_aug, key="train")
 ```
 
 Esta combinación penaliza más los errores en clases minoritarias sin modificar el conjunto de validación ni de test.
+
+
+**c) Métricas normalizadas:**
+
+Se crea una función personalizada `balanced_accuracy`, donde las métricas van normalizadas por la cantidad de registros reales de las etiquetas a clasificar. Esto hace que, al tener un conjunto desbalanceado, el `accuracy` no este influenciado por las clase predominentes, y la mala clasificación de las clases minoritarias penalicen fuertemente a la métrica, forzando mejorar los hiperparámetros.
 
 ### 5. Arquitectura CNN
 
@@ -190,7 +213,7 @@ model.fit(
 | `ModelCheckpoint` | `monitor=val_balanced_accuracy`, `save_best_only=True` |
 
 **Métrica de entrenamiento — `balanced_accuracy`:**  
-Media del recall por clase (mean per-class recall). A diferencia de la accuracy estándar, no se sesga por la clase dominante `nv`. Un modelo que predijera siempre `nv` obtendría ~0% de balanced accuracy en las clases restantes.
+Como se mencionó previamente, se usó una variación en el cálculo de las métricas de clasfificación.. A diferencia de la accuracy estándar, no se sesga por la clase dominante `nv`. Un modelo que predijera siempre `nv` obtendría ~0% de balanced accuracy en las clases restantes.
 
 ```python
 # Fórmula implementada en src/training.py
