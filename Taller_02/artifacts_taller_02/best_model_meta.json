@@ -1,0 +1,23 @@
+{
+  "model_name": "mobilenetv2_fe",
+  "model_family": "mobilenet",
+  "input_size": 224,
+  "interpolation": "bicubic",
+  "class_names": [
+    "actinic keratoses and intraepithelial carcinoma",
+    "basal cell carcinoma",
+    "benign keratosis-like lesions",
+    "dermatofibroma",
+    "melanoma",
+    "melanocytic nevi",
+    "vascular lesions"
+  ],
+  "mel_idx": 4,
+  "test_metrics": {
+    "accuracy": 0.542,
+    "macro_f1": 0.3133797901400002,
+    "mel_recall": 0.5357142857142857
+  },
+  "trained_at": "2026-05-12T06:19:46+00:00",
+  "seed": 161105
+}

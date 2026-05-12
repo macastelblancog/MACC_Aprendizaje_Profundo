@@ -1,6 +1,5 @@
 # Artefactos generados
-artifacts_taller_02/
-figures/
+
 runs/
 
 # Python
@@ -14,12 +13,7 @@ __pycache__/
 venv/
 env/
 
-# Modelos y datos pesados
-*.keras
-*.h5
-*.joblib
-*.npz
-*.npy
+
 
 # Jupyter
 .ipynb_checkpoints/

@@ -7,7 +7,7 @@ from tensorflow import keras
 from tensorflow.keras import layers
 
 
-@keras.saving.register_keras_serializable(package="taller02")
+@tf.keras.utils.register_keras_serializable(package="taller02")
 class Patches(layers.Layer):
     """Extrae patches de una imagen."""
 
@@ -33,7 +33,7 @@ class Patches(layers.Layer):
         return cfg
 
 
-@keras.saving.register_keras_serializable(package="taller02")
+@tf.keras.utils.register_keras_serializable(package="taller02")
 class PatchEncoder(layers.Layer):
     """Proyecta patches + embedding posicional."""
 

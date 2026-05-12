@@ -1,5 +1,4 @@
-tensorflow>=2.15,<2.18
-keras>=3.0
+tensorflow
 keras-hub>=0.3
 medmnist>=3.0
 scikit-learn>=1.4
