@@ -229,3 +229,27 @@ def build_comparison_df(all_results):
         })
     df = pd.DataFrame(rows).sort_values("f1_macro", ascending=False)
     return df.reset_index(drop=True)
+
+def overfitting_summary(history, model_name):
+    """Extrae métricas de overfitting de la última epoch."""
+    if history is None:
+        return None
+    h = history.history if hasattr(history, "history") else history
+    train_acc_key = "accuracy" if "accuracy" in h else ("acc" if "acc" in h else None)
+    val_acc_key   = "val_accuracy" if "val_accuracy" in h else ("val_acc" if "val_acc" in h else None)
+    return {
+        "model_name":  model_name,
+        "epochs_run":  len(h["loss"]),
+        "train_loss":  float(h["loss"][-1]),
+        "val_loss":    float(h["val_loss"][-1]),
+        "loss_gap":    float(h["val_loss"][-1]) - float(h["loss"][-1]),
+        "train_acc":   float(h[train_acc_key][-1]) if train_acc_key else float("nan"),
+        "val_acc":     float(h[val_acc_key][-1])   if val_acc_key   else float("nan"),
+        "acc_gap":     (float(h[train_acc_key][-1]) - float(h[val_acc_key][-1]))
+                       if (train_acc_key and val_acc_key) else float("nan"),
+    }
+
+def first_batch_features(ds):
+    """Devuelve el tensor X del primer batch de un tf.data.Dataset."""
+    for x_batch, _ in ds:
+        return x_batch

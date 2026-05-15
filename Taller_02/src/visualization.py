@@ -269,3 +269,22 @@ def plot_interpolation_comparison(img_original, img_bilinear, img_bicubic,
 
     plt.tight_layout()
     _save_and_show(fig, save_path)
+
+
+def radial_spectrum(image_batch):
+    """Espectro radial promedio (magnitud log) sobre el canal de luminancia.
+       image_batch: [N, H, W, 3] float32. Devuelve vector de longitud H//2."""
+    lum = (0.2126*image_batch[..., 0] + 0.7152*image_batch[..., 1] + 0.0722*image_batch[..., 2])
+    F   = np.fft.fftshift(np.fft.fft2(lum, axes=(-2, -1)), axes=(-2, -1))
+    mag = np.log1p(np.abs(F))                       # log-magnitud, estabiliza media
+    H, W = mag.shape[-2:]
+    cy, cx = H // 2, W // 2
+    y, x = np.indices((H, W))
+    r = np.sqrt((y - cy)**2 + (x - cx)**2).astype(np.int32)
+    r_max = min(cy, cx)
+    # Promedio por anillo radial y luego promedio sobre el batch
+    radial = np.zeros((mag.shape[0], r_max), dtype=np.float64)
+    for k in range(r_max):
+        mask = (r == k)
+        radial[:, k] = mag[..., mask].mean(axis=-1)
+    return radial.mean(axis=0), r_max

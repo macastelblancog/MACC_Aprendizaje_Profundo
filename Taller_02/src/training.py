@@ -16,8 +16,26 @@ from tensorflow.keras.callbacks import (
     ModelCheckpoint,
 )
 
+from keras.optimizers import Adam
+from keras.losses import SparseCategoricalCrossentropy
 from src.config import NUM_CLASSES
 
+
+import tensorflow as tf
+from tensorflow.keras import backend as K
+
+
+@tf.keras.utils.register_keras_serializable(package="src")
+def balanced_accuracy(y_true, y_pred):
+    """Mean per-class recall — graph-safe. Portada de Taller 01."""
+    n_classes = tf.shape(y_pred)[1]
+    y_true    = tf.cast(tf.reshape(y_true, [-1]), tf.int32)
+    y_pred    = tf.cast(tf.argmax(y_pred, axis=1), tf.int32)
+    conf      = tf.math.confusion_matrix(y_true, y_pred, num_classes=n_classes)
+    conf      = tf.cast(conf, tf.float32)
+    row_sums  = tf.reduce_sum(conf, axis=1)
+    recalls   = tf.linalg.diag_part(conf) / (row_sums + K.epsilon())
+    return tf.reduce_mean(recalls)
 
 def get_class_weights(y_train):
     """
@@ -34,43 +52,36 @@ def get_class_weights(y_train):
     )
     return {i: float(w) for i, w in enumerate(values)}
 
-
 def get_callbacks(monitor="val_loss",
                   patience_es=4,
                   patience_lr=2,
                   checkpoint_path=None,
-                  min_lr=1e-6):
+                  min_lr=1e-6,
+                  min_delta=0.001,
+                  start_from_epoch=0):
     """
-    Construye la lista estándar de callbacks de entrenamiento.
-
-    Parameters
-    ----------
-    monitor : str
-        Métrica a monitorear ('val_loss' o 'val_accuracy').
-    patience_es : int
-        Paciencia de EarlyStopping (epochs sin mejora).
-    patience_lr : int
-        Paciencia de ReduceLROnPlateau.
-    checkpoint_path : str | Path | None
-        Si se provee, agrega ModelCheckpoint guardando el mejor modelo.
-    min_lr : float
-        Learning rate mínimo para ReduceLROnPlateau.
-
-    Returns
-    -------
-    list[keras.callbacks.Callback]
+    Parameters agregados vs versión anterior:
+      mode            — inferido del monitor (max para accuracy, min para loss)
+      min_delta       — ignora mejoras menores (igual que T1)
+      start_from_epoch— permite absorber spikes iniciales (crítico para FT)
     """
+    mode = "max" if "accuracy" in monitor else "min"
+
     cbs = [
         EarlyStopping(
             monitor=monitor,
             patience=patience_es,
             restore_best_weights=True,
+            mode=mode,
+            min_delta=min_delta,
+            start_from_epoch=start_from_epoch,
         ),
         ReduceLROnPlateau(
             monitor=monitor,
             factor=0.2,
             patience=patience_lr,
             min_lr=min_lr,
+            mode=mode,
         ),
     ]
     if checkpoint_path is not None:
@@ -80,10 +91,10 @@ def get_callbacks(monitor="val_loss",
                 monitor=monitor,
                 save_best_only=True,
                 save_weights_only=False,
+                mode=mode,
             )
         )
     return cbs
-
 
 def timed_fit(model, train_ds, val_ds, epochs,
               class_weights=None, callbacks=None, verbose=1):
@@ -107,3 +118,4 @@ def timed_fit(model, train_ds, val_ds, epochs,
     )
     elapsed = time.perf_counter() - t0
     return history, elapsed
+

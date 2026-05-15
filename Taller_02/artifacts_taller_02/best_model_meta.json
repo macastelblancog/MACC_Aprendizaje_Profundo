@@ -1,5 +1,5 @@
 {
-  "model_name": "mobilenetv2_fe",
+  "model_name": "mobilenetv2_ft",
   "model_family": "mobilenet",
   "input_size": 224,
   "interpolation": "bicubic",
@@ -14,10 +14,10 @@
   ],
   "mel_idx": 4,
   "test_metrics": {
-    "accuracy": 0.542,
-    "macro_f1": 0.3133797901400002,
-    "mel_recall": 0.5357142857142857
+    "accuracy": 0.6957605985037406,
+    "macro_f1": 0.5198825217737878,
+    "mel_recall": 0.5605381165919282
   },
-  "trained_at": "2026-05-12T06:19:46+00:00",
+  "trained_at": "2026-05-14T19:17:14+00:00",
   "seed": 161105
 }

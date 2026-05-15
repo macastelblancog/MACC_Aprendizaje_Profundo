@@ -11,7 +11,12 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
+from keras.optimizers import Adam
+from keras.losses import SparseCategoricalCrossentropy
+
+
 from src.config import NUM_CLASSES, LR_FE, LR_FT
+from src.training import balanced_accuracy
 
 
 def build_mobilenet_fe(num_classes=NUM_CLASSES,
@@ -41,10 +46,10 @@ def build_mobilenet_fe(num_classes=NUM_CLASSES,
 
     model = keras.Model(inputs, outputs, name="mobilenetv2_feature_extraction")
     model.compile(
-        optimizer=keras.optimizers.Adam(lr),
-        loss="sparse_categorical_crossentropy",
-        metrics=["accuracy"],
-    )
+    optimizer=Adam(learning_rate=lr),
+    loss=SparseCategoricalCrossentropy(),
+    metrics=["accuracy", balanced_accuracy],
+)
     return model, base
 
 
@@ -70,24 +75,25 @@ def unfreeze_for_finetuning(model, base, n_unfreeze=30, lr=LR_FT):
     )
     return model
 
-
+@tf.keras.utils.register_keras_serializable(package="src")
 def snapshot_model(model, lr=LR_FE):
     """
     Copia profunda del modelo con sus pesos actuales (FIX BUG-02).
-
-    Uso típico: tras entrenar FE, hacer snapshot ANTES de descongelar capas
-    para FT. Así se puede evaluar el modelo FE original como entidad
-    separada en la comparación final.
+    Usa custom_object_scope para que clone_model resuelva balanced_accuracy
+    durante la deserialización de la config compilada.
     """
-    snapshot = keras.models.clone_model(model)
+    from src.training import balanced_accuracy   # import local evita circulares
+
+    with keras.saving.custom_object_scope({"balanced_accuracy": balanced_accuracy}):
+        snapshot = keras.models.clone_model(model)
+
     snapshot.set_weights(model.get_weights())
     snapshot.compile(
         optimizer=keras.optimizers.Adam(lr),
         loss="sparse_categorical_crossentropy",
-        metrics=["accuracy"],
+        metrics=["accuracy", balanced_accuracy],  # mantener métrica en el snapshot
     )
     return snapshot
-
 
 def build_embedding_extractor(model, layer_name="gap"):
     """

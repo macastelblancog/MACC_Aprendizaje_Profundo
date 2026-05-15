@@ -94,3 +94,17 @@ def make_dataset(images, labels, batch_size=BATCH_SIZE,
     ds = ds.map(fn_map[model_family], num_parallel_calls=AUTOTUNE)
     ds = ds.batch(batch_size).prefetch(AUTOTUNE)
     return ds
+
+def build_family_pipelines(x_train, y_train, x_val, y_val, x_test, y_test,
+                            family, interpolation, batch_size):
+    """Instancia los tres splits para una familia de modelos."""
+    train_ds = make_dataset(x_train, y_train, batch_size=batch_size,
+                            shuffle=True, model_family=family,
+                            interpolation=interpolation, augment=True)
+    val_ds   = make_dataset(x_val,   y_val,   batch_size=batch_size,
+                            shuffle=False, model_family=family,
+                            interpolation=interpolation, augment=False)
+    test_ds  = make_dataset(x_test,  y_test,  batch_size=batch_size,
+                            shuffle=False, model_family=family,
+                            interpolation=interpolation, augment=False)
+    return train_ds, val_ds, test_ds
