@@ -15,13 +15,14 @@
 > con `FAST_MODE = False`. La tabla canónica vive en
 > `artifacts_taller_02/comparison_results.csv`.
 
-| Modelo               | F1 Macro | Balanced Acc | Mel Recall | Mel F1 | Parámetros | ms/img |
-|----------------------|----------|--------------|------------|--------|------------|--------|
-| Baseline CNN (5×5)   | _pend._  | _pend._      | _pend._    | _pend._| _pend._    | _pend._|
-| MobileNetV2 (FE)     | _pend._  | _pend._      | _pend._    | _pend._| _pend._    | _pend._|
-| MobileNetV2 (FT)     | _pend._  | _pend._      | _pend._    | _pend._| _pend._    | _pend._|
-| Hybrid CNN + RF      | _pend._  | _pend._      | _pend._    | _pend._| _pend._    | _pend._|
-| DeiT / Small ViT     | _pend._  | _pend._      | _pend._    | _pend._| _pend._    | _pend._|
+
+| Modelo                        |   accuracy |   balanced_acc |   f1_macro |   mel_recall |       parametros |
+|:------------------------------|-----------:|---------------:|-----------:|-------------:|-----------------:|
+| Baseline CNN (5×5)            |     0.5102 |         0.5164 |     0.3695 |       0.6323 |  27783           |
+| MobileNetV2 (FE)              |     0.5761 |         0.5094 |     0.3683 |       0.5291 |      2.26695e+06 |
+| MobileNetV2 (FT)              |     0.6958 |         0.5334 |     0.5199 |       0.5605 |      2.26695e+06 |
+| MobileNetV2 + embeddings + RF |     0.6943 |         0.2348 |     0.2727 |       0.0135 |    nan           |
+| DeiT / Small ViT              |     0.4464 |         0.1917 |     0.11   |       0      | 411719           |
 
 **Métricas mínimas esperadas (`FAST_MODE=False`):**
 
